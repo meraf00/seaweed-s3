@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { FileInfo, S3Client } from '../types';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class StorageService {
@@ -12,12 +13,12 @@ export class StorageService {
   ) {}
 
   async upload(file: Express.Multer.File, bucketName: string): Promise<any> {
-    const name = String(Date.now());
+    const normalizedFileName = uuid();
 
-    await this.s3.putObject(bucketName, name, file.buffer);
+    await this.s3.putObject(bucketName, normalizedFileName, file.buffer);
 
     return {
-      filepath: name,
+      filepath: normalizedFileName,
       bucketName,
       contentType: file.mimetype,
       orginalname: file.originalname,
@@ -47,11 +48,11 @@ export class StorageService {
   }
 
   async generatePresignedUploadUrl(fileInfo: FileInfo) {
-    const name = String(Date.now());
+    const normalizedFileName = uuid();
 
     return await this.s3.presignedPutObject(
       fileInfo.bucketName,
-      name,
+      normalizedFileName,
       fileInfo.contentType,
       Number(this.configService.get<number>('PRESIGNED_URL_EXPIRATION') ?? 120),
     );

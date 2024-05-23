@@ -22,8 +22,6 @@ export class AwsS3 extends S3Client {
       Expires: duration,
     };
 
-    console.log(params, 'put object');
-
     return await this.s3.getSignedUrlPromise('putObject', params);
   }
 
