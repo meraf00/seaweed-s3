@@ -3,7 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { FileInfo, S3Client } from '../types';
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
+import { extname } from 'path';
 
 @Injectable()
 export class StorageService {
@@ -13,7 +14,7 @@ export class StorageService {
   ) {}
 
   async upload(file: Express.Multer.File, bucketName: string): Promise<any> {
-    const normalizedFileName = uuid();
+    const normalizedFileName = randomUUID() + extname(file.originalname);
 
     await this.s3.putObject(bucketName, normalizedFileName, file.buffer);
 
@@ -48,7 +49,7 @@ export class StorageService {
   }
 
   async generatePresignedUploadUrl(fileInfo: FileInfo) {
-    const normalizedFileName = uuid();
+    const normalizedFileName = randomUUID() + extname(fileInfo.orginalname);
 
     return await this.s3.presignedPutObject(
       fileInfo.bucketName,
