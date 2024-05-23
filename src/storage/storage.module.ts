@@ -19,6 +19,7 @@ import { ConfigService } from '@nestjs/config';
           region: configService.get('AWS_REGION'),
           endpoint: configService.get('AWS_ENDPOINT'),
           s3ForcePathStyle: true,
+          signatureVersion: 'v4',
         });
       },
       inject: [ConfigService],
