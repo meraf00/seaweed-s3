@@ -1,35 +1,36 @@
 import { Module } from '@nestjs/common';
-import { StorageService } from './services/storage.service';
 
+import { S3Client } from '@aws-sdk/client-s3';
+
+import { StorageService } from './services/storage.service';
 import { AwsS3 } from './services/aws-s3.service';
-import { S3 } from 'aws-sdk';
+import { S3 } from './types';
+
 import { StorageController } from './controllers/storage.controller';
-import { S3Client } from './types';
-import { ConfigService } from '@nestjs/config';
 
 @Module({
   providers: [
     // Inject AWS Dependency
     {
-      provide: S3,
-      useFactory: (configService: ConfigService) => {
-        return new S3({
-          accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
-          secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
-          region: configService.get('AWS_REGION'),
-          endpoint: configService.get('AWS_ENDPOINT'),
-          s3ForcePathStyle: true,
-          signatureVersion: 'v4',
+      provide: S3Client,
+      useFactory: () => {
+        return new S3Client({
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          },
+          endpoint: process.env.AWS_ENDPOINT,
+          forcePathStyle: true,
         });
       },
-      inject: [ConfigService],
     },
 
-    // Inject S3Facade
+    // Inject S3
     {
-      provide: S3Client,
+      provide: S3,
       useClass: AwsS3,
     },
+
     StorageService,
   ],
   controllers: [StorageController],

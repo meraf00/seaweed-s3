@@ -1,11 +1,11 @@
 export type FileInfo = {
-  bucketName?: string;
+  bucketName: string;
   filepath?: string;
-  contentType?: string;
-  orginalname?: string;
+  contentType: string;
+  originalname: string;
 };
 
-export abstract class S3Client {
+export abstract class S3 {
   abstract presignedPutObject(
     bucketName: string,
     objectName: string,
@@ -22,7 +22,7 @@ export abstract class S3Client {
 
   abstract deleteObject(bucketName: string, objectName: string): Promise<void>;
 
-  abstract getObject(fileInfo: FileInfo);
+  abstract getObject(bucketName: string, objectName: string): Promise<any>;
 
   abstract putObject(
     bucketName: string,

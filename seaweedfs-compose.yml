@@ -14,6 +14,7 @@ services:
       - 38080:8080
       - 18080:18080
       - 39325:9325
+
     command: 'volume -mserver="master:9333" -ip.bind=0.0.0.0 -port=8080  -metricsPort=9325'
     depends_on:
       - master
@@ -34,7 +35,9 @@ services:
     ports:
       - 38333:8333
       - 39327:9327
-    command: 's3 -filer="filer:8888" -ip.bind=0.0.0.0 -metricsPort=9327'
+    volumes:
+      - ./data-center/seaweedfs:/etc/seaweedfs
+    command: 's3 -filer="filer:8888" -ip.bind=0.0.0.0 -metricsPort=9327 -config=/etc/seaweedfs/s3.conf'
     depends_on:
       - master
       - volume
@@ -53,7 +56,7 @@ services:
     ports:
       - 39000:9090
     volumes:
-      - ./prometheus:/etc/prometheus
-    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+      - ./data-center/prometheus:/etc/prometheus
+    command: --web.enable-lifecycle # --config.file=/etc/prometheus/prometheus.yml
     depends_on:
       - s3
