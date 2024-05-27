@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  NoSuchKey,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -8,6 +9,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { Injectable } from '@nestjs/common';
 import { S3 } from '../types';
+import { FileNotFoundException } from './exceptions';
 
 @Injectable()
 export class AwsS3 extends S3 {
@@ -44,7 +46,13 @@ export class AwsS3 extends S3 {
       Key: objectName,
     });
 
-    return await getSignedUrl(this.s3, command, { expiresIn: duration });
+    try {
+      return await getSignedUrl(this.s3, command, { expiresIn: duration });
+    } catch (e) {
+      if (e instanceof NoSuchKey) {
+        throw new FileNotFoundException(objectName);
+      }
+    }
   }
 
   async deleteObject(bucketName: string, objectName: string): Promise<void> {
@@ -62,9 +70,15 @@ export class AwsS3 extends S3 {
       Key: objectName,
     });
 
-    return Buffer.from(
-      await (await this.s3.send(command)).Body.transformToByteArray(),
-    );
+    try {
+      return Buffer.from(
+        await (await this.s3.send(command)).Body.transformToByteArray(),
+      );
+    } catch (e) {
+      if (e instanceof NoSuchKey) {
+        throw new FileNotFoundException(objectName);
+      }
+    }
   }
 
   async putObject(
